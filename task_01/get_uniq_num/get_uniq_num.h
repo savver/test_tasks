@@ -1,9 +1,10 @@
 /**
  * ----------------------------------------------------------------------------
  * \file get_uniq_num.h
- * \brief Header file
+ * \brief The library for function to find a unique number without a pair in
+ * an array of numbers, having the form 2*N+1.
  * \author Anton S. (savver.engineer@gmail.com)
- * \date 2025-05-24
+ * \date 2025-05-25
  * ----------------------------------------------------------------------------
  */
 
@@ -14,7 +15,11 @@
 
 #include <stdint.h>
 
-/*--- Defines ----------------------------------------------------------------*/
+/*--- Settings ---------------------------------------------------------------*/
+
+///! if 1 use optimal fast version, based on 'xor', but there are some nuances,
+/// see function description
+#define UNIQNUM_OPTIMAL_VER         1
 
 /*--- Global Prototypes ------------------------------------------------------*/
 

@@ -98,8 +98,9 @@ mantest_01_static_arr(void)
     {
 #if MANTEST_DBG_PRINT_TEST01_STAT_ARR
     printf_d("array[%d] = { ", i);
-    for(int j = 0; j < mantest_arr_info[i].arr_size; i++)
+    for(int j = 0; j < mantest_arr_info[i].arr_size; j++)
         printf_d("%d, ", mantest_arr_info[i].arr[j]);
+    printf_d("}\n");
 #endif
         uniq_val = get_unique_num(mantest_arr_info[i].arr,
                                   mantest_arr_info[i].arr_size);
