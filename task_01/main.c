@@ -20,9 +20,7 @@ int main()
     printf("-------- Search Uniq Num in Array -----------\n");
 
    //mantest_01_user_stdin();
-     mantest_02_read_fr_files();
+    mantest_02_read_fr_file("test_data/test_001_arr21_res=11.txt");
+    mantest_03_files_fr_dir("test_data");
 }
 /*---------------------------------------------------------------------------*/
-
-
-

@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <dirent.h>
 #include "manual_tests.h"
 #include "../get_uniq_num/get_uniq_num.h"
 
@@ -25,6 +26,10 @@ int
 mantest_read_numbers_fr_file(const char *   file_path,
                              int32_t **     numb_arr_p,
                              int32_t        numb_max_count);
+
+int
+mantest_read_files_fr_dir(const char *  dir_path,
+                          char **       fnames);
 
 /*=== Functions =============================================================*/
 void
@@ -45,20 +50,43 @@ mantest_01_user_stdin(void)
 }
 /*---------------------------------------------------------------------------*/
 void
-mantest_02_read_fr_files(void)
+mantest_02_read_fr_file(const char * file_path)
 {
     int32_t *   numb_arr;
     size_t      numb_arr_size;
 
-    numb_arr_size = mantest_read_numbers_fr_file("test_data/test_001_arr21_res=11.txt", &numb_arr, 100);
+    numb_arr_size = mantest_read_numbers_fr_file(file_path, &numb_arr, 100);
 
     int uniq_val = get_unique_num(numb_arr, numb_arr_size);
-    printf("get_unique_num():uniq_val = %d", uniq_val);
+    printf("get_unique_num():uniq_val = %d\n", uniq_val);
 
     if(numb_arr)
-    {
         free(numb_arr);
+}
+/*---------------------------------------------------------------------------*/
+void
+mantest_03_files_fr_dir(const char * file_path)
+{
+    char *  fnames;
+    int     files_cnt;
+
+    files_cnt = mantest_read_files_fr_dir(file_path, &fnames);
+    if(files_cnt <= 0)
+    {
+        printf("ERR (func:%s, line:%d): stop test\n",
+                __FUNCTION__, __LINE__);
+        return;
     }
+
+    char *   fname_p = fnames;
+    for(int i = 0; i < files_cnt; i++)
+    {
+        mantest_02_read_fr_file(fname_p);
+        fname_p = strchr(fname_p, '\0') + 1;
+    }
+
+    if(fnames)
+        free(fnames);
 }
 /*---------------------------------------------------------------------------*/
 /*!
@@ -150,7 +178,8 @@ mantest_read_numbers_fr_file(const char *   file_path,
         return mantest_err_file_open;
     }
     uint64_t file_size = stats.st_size;
-    printf("file.stats.st_size  = %lld\n", stats.st_size);
+    printf("file_name             = %s\n", file_path);
+    printf("file.stats.st_size    = %lld\n", stats.st_size);
 
 #if 0
     //--- reserve space for the maximum possible number of numbers
@@ -186,7 +215,7 @@ mantest_read_numbers_fr_file(const char *   file_path,
             break;
     }
     file_numb_count += 1;
-    printf("number amount in file  = %d\n", file_numb_count);
+    printf("number amount in file = %d\n", file_numb_count);
 
     //--- allocate memory for number array
     *numb_arr_p = malloc(file_numb_count * sizeof(int32_t));
@@ -201,9 +230,12 @@ mantest_read_numbers_fr_file(const char *   file_path,
     //--- read numbers from file
     rewind(fp);
 
+#if MANTEST_DBG_PRINT_FILE_DATA
+    printf("read data:\n");
+#endif
+
     int32_t * data = *numb_arr_p;
     int32_t idx = 0;
-    printf("read data:\n");
     while(!feof(fp))
     {
         res = fscanf(fp, "%d,", &data[idx]);
@@ -215,12 +247,76 @@ mantest_read_numbers_fr_file(const char *   file_path,
             free(*numb_arr_p);
             return mantest_err_data_format;
         }
+#if MANTEST_DBG_PRINT_FILE_DATA
         printf("%d,", data[idx]);
+#endif
         idx++;
     }
-    printf("\n", data[idx]);
+#if MANTEST_DBG_PRINT_FILE_DATA
+    printf("\n");
+#endif
 
     fclose(fp);
     return file_numb_count;
 }
 /*---------------------------------------------------------------------------*/
+int
+mantest_read_files_fr_dir(const char * dir_path, char **  fnames)
+{
+    DIR *               dir;
+    char *              file_sep = "\\";
+
+    dir = opendir(dir_path);
+    if (dir == NULL)
+    {
+        printf("ERR (func:%s, line:%d): can't ohen dir '%s'\n",
+               __FUNCTION__, __LINE__, dir_path);
+        return mantest_err_file_open;
+    }
+
+    struct dirent * dir_entry;
+    int file_cnt = 0;
+    while (dir_entry = readdir(dir))
+    {
+        if(strstr(dir_entry->d_name, ".txt"))
+        {
+            file_cnt++;
+        }
+    }
+    printf("count of txt files in dir = %d\n", file_cnt);
+
+    closedir(dir);
+    dir = opendir(dir_path);
+    if (dir == NULL)
+    {
+        printf("ERR (func:%s, line:%d): can't ohen dir '%s'\n",
+               __FUNCTION__, __LINE__, dir_path);
+        return mantest_err_file_open;
+    }
+
+    *fnames = malloc(file_cnt * MANTEST_MAX_FNAME_LEN);
+    if(!*fnames)
+    {
+        printf("ERR (func:%s, line:%d): memory allocation, malloc(%d)\n",
+               __FUNCTION__, __LINE__, file_cnt * MANTEST_MAX_FNAME_LEN);
+        closedir(dir);
+        return NULL;
+    }
+    char *  str_p = *fnames;
+    while (dir_entry = readdir(dir))
+    {
+        if(strstr(dir_entry->d_name, ".txt"))
+        {
+            strcpy(str_p, dir_path);
+                   str_p += strlen(dir_path);
+            strcpy(str_p, file_sep);
+                   str_p += strlen(file_sep);
+            strcpy(str_p, dir_entry->d_name);
+                   str_p += strlen(dir_entry->d_name) + 1;
+        }
+    }
+
+    return file_cnt;
+}
+/*---------------------------------------------------------------------------*/
+

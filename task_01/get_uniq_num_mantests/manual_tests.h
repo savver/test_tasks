@@ -14,6 +14,11 @@
 
 #include <stdint.h>
 
+/*--- Settings ---------------------------------------------------------------*/
+
+///! Print numbers read from files
+#define MANTEST_DBG_PRINT_FILE_DATA         1
+
 /*--- Defines ----------------------------------------------------------------*/
 
 typedef enum
@@ -26,15 +31,21 @@ typedef enum
 }
 mantest_res_t;
 
+#define MANTEST_MAX_FNAME_LEN   260
+
 /*--- Global Prototypes ------------------------------------------------------*/
 
 ///! \brief user input array from keyboard, and see searching result
 void
 mantest_01_user_stdin(void);
 
-///! \brief read array from test file
+///! \brief read array from single test file
 void
-mantest_02_read_fr_files(void);
+mantest_02_read_fr_file(const char * file_path);
+
+///! read all text files in dir
+void
+mantest_03_files_fr_dir(const char * file_path);
 
 //------------------------------------------------------------------------------
 #endif // MANUAL_TESTS_H
