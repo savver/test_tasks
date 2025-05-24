@@ -16,8 +16,17 @@
 
 /*--- Settings ---------------------------------------------------------------*/
 
+///! Print detail debug info during tests
+#define MANTEST_DBG_PRINT_DETAIL            1
+
+///! Print numbers from static arrays from this test lib
+#define MANTEST_DBG_PRINT_TEST01_STAT_ARR   1
+
 ///! Print numbers read from files
 #define MANTEST_DBG_PRINT_FILE_DATA         1
+
+///! Max numbres read from file. To avoid allocating a large amount of memory
+#define MANTEST_MAX_NUMBERS_FR_FILE         100
 
 /*--- Defines ----------------------------------------------------------------*/
 
@@ -35,17 +44,10 @@ mantest_res_t;
 
 /*--- Global Prototypes ------------------------------------------------------*/
 
-///! \brief user input array from keyboard, and see searching result
-void
-mantest_01_user_stdin(void);
-
-///! \brief read array from single test file
-void
-mantest_02_read_fr_file(const char * file_path);
-
-///! read all text files in dir
-void
-mantest_03_files_fr_dir(const char * file_path);
+int     mantest_01_static_arr(void);
+void    mantest_02_user_stdin(void);
+int     mantest_03_read_fr_file(const char * fname);
+int     mantest_04_files_fr_dir(const char * dirname);
 
 //------------------------------------------------------------------------------
 #endif // MANUAL_TESTS_H
