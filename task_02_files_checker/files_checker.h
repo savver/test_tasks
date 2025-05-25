@@ -1,9 +1,9 @@
 /**
  * ----------------------------------------------------------------------------
  * \file files_checker.h
- * \brief
+ * \brief Check md5 hash for all files in folder and subfolders.
  * \author Anton S. (savver.engineer@gmail.com)
- * \date 2025-05-25
+ * \date 2025-05-26
  * ----------------------------------------------------------------------------
  */
 
@@ -16,9 +16,14 @@
 
 /*--- Settings ---------------------------------------------------------------*/
 
+/*! @brief Print detail debug info during tests
+*/
+#define MANTEST_DBG_PRINT_DETAIL            1
 
 /*--- Defines ----------------------------------------------------------------*/
 
+/*! @brief Return codes for some functions
+*/
 typedef enum
 {
     fch_ok              =  0,
@@ -28,6 +33,8 @@ typedef enum
     fch_err_mem_alloc   = -4
 }
 fch_res_t;
+
+#define FCH_MD5_STR_SIZE      (32+1)
 
 /*--- Global Prototypes ------------------------------------------------------*/
 

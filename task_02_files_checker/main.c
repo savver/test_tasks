@@ -1,3 +1,14 @@
+/**
+ * ----------------------------------------------------------------------------
+ * \file main.c
+ * \brief Test task 02 "md5 hash files check"
+ * \author Anton S.
+ * \date 2025-05-26
+ * ----------------------------------------------------------------------------
+ */
+
+/*--- Includes ---------------------------------------------------------------*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -6,9 +17,10 @@
 #include "program_info.h"
 #include "files_checker.h"
 
+/*--- Private  Prototypes ----------------------------------------------------*/
 void usage(void);
 
-/*=== Functions ===============================*/
+/*=== Functions ==============================================================*/
 int main(int argc, char *argv[])
 {
     char *   dirname = NULL;
@@ -27,33 +39,32 @@ int main(int argc, char *argv[])
         {
             switch(opt)
             {
-               case PROG_OPT_HELP:
-               //---------------------
-               usage();
-               exit(1);
-               //---------------------
-               break;
+                case PROG_OPT_HELP:
+                //---------------------
+                usage();
+                exit(1);
+                //---------------------
+                break;
 
-               case PROG_OPT_DIR:
-               //---------------------
-               path_len = strlen(optarg);
-               if(path_len > PATH_MAX)
-               {
+                case PROG_OPT_DIR:
+                //---------------------
+                path_len = strlen(optarg);
+                if(path_len > PATH_MAX)
+                {
                    fprintf(stderr, "ERR: %s(),%d: path_len (%d) > PATH_MAX\n",
                            __FUNCTION__, __LINE__, path_len);
                    exit(1);
-               }
-               dirname = malloc(path_len+2);
-             //memset(dirname, 0, path_len+2);
-               if(!dirname)
-               {
+                }
+                dirname = malloc(path_len+2);
+                if(!dirname)
+                {
                    fprintf(stderr, "ERR: %s(),%d: allocate %d bytes\n",
                            __FUNCTION__, __LINE__, path_len);
                    exit(1);
-               }
-               strcpy(dirname, optarg); //PATH_MAX, maybe strcpy, len check higher
-               //---------------------
-               break;
+                }
+                strcpy(dirname, optarg); //len check higher, so use unsafe func
+                //---------------------
+                break;
 
                 default:
                 break;
@@ -69,7 +80,6 @@ int main(int argc, char *argv[])
     }
 
     //----------------
-    //fch_check_dir("111");
     fch_check_dir(dirname);
     //----------------
 
@@ -79,7 +89,7 @@ int main(int argc, char *argv[])
     printf("Program Finish!\n\n");
     return 0;
 }
-/*-----------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 void usage(void)
 {
     printf(PROG_STR_SEP  "\n");
@@ -88,5 +98,5 @@ void usage(void)
     printf(PROG_STR_SEP  "\n");
     printf(PROG_HELP     "\n");
 }
-/*-----------------------------------------------------*/
-/*-----------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+

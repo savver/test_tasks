@@ -1,8 +1,17 @@
+/**
+ * ----------------------------------------------------------------------------
+ * \file program_info.h
+ * \brief Printable help about the program and the command line options used.
+ * \author Anton S.
+ * \date 2025-05-26
+ * ----------------------------------------------------------------------------
+ */
+
 #ifndef PROGRAM_INFO_H
 #define PROGRAM_INFO_H
 
 #define PROG_NAME   "Files MD5 Checker"
-#define PROG_VER    "v.2025.05.25a"
+#define PROG_VER    "v.2025.05.26a"
 #define PROG_STR_SEP "------------------------------------"
 
 #define PROG_HELP                               \
