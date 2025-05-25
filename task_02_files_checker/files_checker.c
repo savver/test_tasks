@@ -193,7 +193,7 @@ fch_scan_dir_v2(struct fch_finfo * finfo_l,
                 }
                 else
                 {
-                    fch_scan_dir(finfo_l, new_fname);
+                    fch_scan_dir_v2(finfo_l, new_fname);
                 }
             }
             else
@@ -242,7 +242,8 @@ fch_file_list_print(struct fch_finfo * finfo_l)
 {
     struct fch_finfo * file;
 
-    list_for_each_entry(file, &finfo_l->head_l, head_l)
+  //list_for_each_entry(file, &finfo_l->head_l, head_l)
+    list_for_each_entry_reverse(file, &finfo_l->head_l, head_l)
     {
         printf("%s\n", file->name);
     }
