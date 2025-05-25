@@ -51,6 +51,10 @@ int
 fch_scan_dir(struct fch_finfo * finfo_l,
              const char * dirname);
 
+int
+fch_scan_dir_v2(struct fch_finfo * finfo_l,
+                const char *       dirname);
+
 /*=== Functions ==============================================================*/
 
 /*!
@@ -85,7 +89,8 @@ fch_check_dir(const char * dirname)
 
     fch_file_list_init(&finfos);
 
-    res = fch_scan_dir(&finfos, dirname);
+  //res = fch_scan_dir(&finfos, dirname);
+    res = fch_scan_dir_v2(&finfos, dirname);
 
     fch_file_list_print(&finfos);
 
@@ -126,7 +131,7 @@ fch_scan_dir(struct fch_finfo * finfo_l,
             {
                 if (!S_ISDIR(fstat.st_mode))
                 {
-                    printf("new dir: %s\n", new_fname);
+                    printf("new file: %s\n", new_fname);
                     fch_file_list_add(finfo_l, new_fname);
                 }
                 else
@@ -145,6 +150,61 @@ fch_scan_dir(struct fch_finfo * finfo_l,
     {
         return fch_err_dir_open;
     }
+
+    return fch_ok;
+}
+/*----------------------------------------------------------------------------*/
+int
+fch_scan_dir_v2(struct fch_finfo * finfo_l,
+                const char *       dirname)
+{
+    struct stat         fstat;
+    int                 fnum;
+    int                 res;
+    struct dirent **    namelist;
+
+    printf("scan dir_name: '%s'...\n",dirname);
+
+    fnum = scandir(dirname, &namelist, NULL, alphasort);
+    if(fnum < 0)
+    {
+         return fch_err_dir_open;
+    }
+
+    for(int i = 0; i < fnum; i++)
+    {
+        if (strcmp(namelist[i]->d_name,".") && //not system files '.', '..'
+            strcmp(namelist[i]->d_name,".."))
+        {
+            int new_name_len = strlen(dirname) + strlen(namelist[i]->d_name) + 2;
+            char * new_fname = malloc(new_name_len);
+            if(!new_fname)
+                return fch_err_mem_alloc;
+
+            snprintf(new_fname, new_name_len, "%s/%s", dirname, namelist[i]->d_name);
+
+            res = stat(new_fname, &fstat);
+            if (res == 0)
+            {
+                if (!S_ISDIR(fstat.st_mode))
+                {
+                    printf("new file: %s\n", new_fname);
+                    fch_file_list_add(finfo_l, new_fname);
+                }
+                else
+                {
+                    fch_scan_dir(finfo_l, new_fname);
+                }
+            }
+            else
+            {
+                printf("errno = %d", errno);
+            }
+            free(new_fname);
+            free(namelist[i]);
+        }//if
+    }//for i
+    free(namelist);
 
     return fch_ok;
 }
