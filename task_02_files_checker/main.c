@@ -4,6 +4,7 @@
 #include <string.h>
 #include <linux/limits.h>
 #include "program_info.h"
+#include "files_checker.h"
 
 void usage(void);
 
@@ -42,14 +43,15 @@ int main(int argc, char *argv[])
                            __FUNCTION__, __LINE__, path_len);
                    exit(1);
                }
-               dirname = malloc(path_len);
+               dirname = malloc(path_len+2);
+             //memset(dirname, 0, path_len+2);
                if(!dirname)
                {
                    fprintf(stderr, "ERR: %s(),%d: allocate %d bytes\n",
                            __FUNCTION__, __LINE__, path_len);
                    exit(1);
                }
-               strncpy(dirname, optarg, PATH_MAX); //maybe strcpy, len check higher
+               strcpy(dirname, optarg); //PATH_MAX, maybe strcpy, len check higher
                //---------------------
                break;
 
@@ -67,7 +69,8 @@ int main(int argc, char *argv[])
     }
 
     //----------------
-    //fch_check_dir(dirname);
+    //fch_check_dir("111");
+    fch_check_dir(dirname);
     //----------------
 
     if(dirname)
