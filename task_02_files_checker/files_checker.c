@@ -22,6 +22,8 @@
 #include "list.h"
 #include "files_checker.h"
 
+/*--- Defines ----------------------------------------------------------------*/
+
 typedef struct fch_finfo
 {
     struct list_head    head_l;
@@ -30,39 +32,24 @@ typedef struct fch_finfo
 }
 fch_finfo_t;
 
+/*--- Global Variables -------------------------------------------------------*/
+
+struct fch_finfo    finfos;
+
+/*--- Private Prototypes -----------------------------------------------------*/
+
 void
-fch_file_list_init(struct fch_finfo * finfo_l)
-{
-    INIT_LIST_HEAD(&finfo_l->head_l);
-}
+fch_file_list_init(struct fch_finfo * finfo_l);
 
 int
-fch_file_list_add(struct fch_finfo * finfos_l, char * fname)
-{
-    struct fch_finfo *   new_finfo;
-    int                  len;
+fch_file_list_add(struct fch_finfo * finfos_l, char * fname);
 
-    new_finfo = malloc(sizeof(struct fch_finfo));
-    if(!new_finfo)
-        return fch_err_mem_alloc;
-
-    new_finfo->name = malloc(strlen(fname) + 1);
-    if(!new_finfo->name)
-    {
-        free(new_finfo);
-        return fch_err_mem_alloc;
-    }
-
-    list_add(&new_finfo->head_l, &finfos_l->head_l);
-
-    return fch_ok;
-}
+void
+fch_file_list_print(struct fch_finfo * finfo_l);
 
 int
 fch_scan_dir(struct fch_finfo * finfo_l,
              const char * dirname);
-
-struct fch_finfo    finfos;
 
 /*=== Functions ==============================================================*/
 
@@ -100,6 +87,8 @@ fch_check_dir(const char * dirname)
 
     res = fch_scan_dir(&finfos, dirname);
 
+    fch_file_list_print(&finfos);
+
     return res;
 }
 /*----------------------------------------------------------------------------*/
@@ -112,7 +101,7 @@ fch_scan_dir(struct fch_finfo * finfo_l,
     struct stat         fstat;
     int                 res;
 
-    printf("Read of '%s':\n",dirname);
+    printf("scan dir_name: '%s'...\n",dirname);
 
     dir = opendir(dirname);
     if (dir == NULL)
@@ -125,7 +114,6 @@ fch_scan_dir(struct fch_finfo * finfo_l,
         if (strcmp(entry->d_name,".") && //not system files '.', '..'
             strcmp(entry->d_name,".."))
         {
-            //if (opendir(entry->d_name)==NULL) - not work
             int new_name_len = strlen(dirname) + strlen(entry->d_name) + 2;
             char * new_fname = malloc(new_name_len);
             if(!new_fname)
@@ -138,7 +126,7 @@ fch_scan_dir(struct fch_finfo * finfo_l,
             {
                 if (!S_ISDIR(fstat.st_mode))
                 {
-                    printf("new dir: %s", new_fname);
+                    printf("new dir: %s\n", new_fname);
                     fch_file_list_add(finfo_l, new_fname);
                 }
                 else
@@ -159,5 +147,44 @@ fch_scan_dir(struct fch_finfo * finfo_l,
     }
 
     return fch_ok;
+}
+/*----------------------------------------------------------------------------*/
+void
+fch_file_list_init(struct fch_finfo * finfo_l)
+{
+    INIT_LIST_HEAD(&finfo_l->head_l);
+}
+/*----------------------------------------------------------------------------*/
+int
+fch_file_list_add(struct fch_finfo * finfos_l, char * fname)
+{
+    struct fch_finfo *   new_finfo;
+
+    new_finfo = malloc(sizeof(struct fch_finfo));
+    if(!new_finfo)
+        return fch_err_mem_alloc;
+
+    new_finfo->name = malloc(strlen(fname) + 1);
+    if(!new_finfo->name)
+    {
+        free(new_finfo);
+        return fch_err_mem_alloc;
+    }
+
+    strcpy(new_finfo->name, fname);
+    list_add(&new_finfo->head_l, &finfos_l->head_l);
+
+    return fch_ok;
+}
+/*----------------------------------------------------------------------------*/
+void
+fch_file_list_print(struct fch_finfo * finfo_l)
+{
+    struct fch_finfo * file;
+
+    list_for_each_entry(file, &finfo_l->head_l, head_l)
+    {
+        printf("%s\n", file->name);
+    }
 }
 /*----------------------------------------------------------------------------*/
