@@ -19,6 +19,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
+#include <ctype.h>
 #include "list.h"
 #include "files_checker.h"
 #include "MD5-hash-Calculator/md5.h"
@@ -46,6 +47,12 @@ int
 fch_file_list_add(struct fch_finfo * finfos_l, char * fname);
 
 void
+fch_file_list_remove(struct fch_finfo * file);
+
+void
+fch_file_list_print_remove_all(struct fch_finfo * finfo_l);
+
+void
 fch_file_list_print(struct fch_finfo * finfo_l);
 
 int
@@ -58,6 +65,12 @@ fch_scan_dir_v2(struct fch_finfo * finfo_l,
 
 char *
 fch_calc_md5(const char * fname);
+
+int
+fch_file_list_search_check_md5(struct fch_finfo * finfo_l);
+
+char *
+fch_str_tolower(char * str);
 
 /*=== Functions ==============================================================*/
 
@@ -95,8 +108,11 @@ fch_check_dir(const char * dirname)
 
   //res = fch_scan_dir(&finfos, dirname);
     res = fch_scan_dir_v2(&finfos, dirname);
-
     fch_file_list_print(&finfos);
+
+    fch_file_list_search_check_md5(&finfos);
+
+    fch_file_list_print_remove_all(&finfos);
 
     return res;
 }
@@ -192,8 +208,12 @@ fch_scan_dir_v2(struct fch_finfo * finfo_l,
             {
                 if (!S_ISDIR(fstat.st_mode))
                 {
-                    printf("new file: %s\n", new_fname);
-                    fch_file_list_add(finfo_l, new_fname);
+                    if (strstr(namelist[i]->d_name,".bin") ||
+                        strstr(namelist[i]->d_name,".md5"))
+                    {
+                        printf("new file: %s\n", new_fname);
+                        fch_file_list_add(finfo_l, new_fname);
+                    }
                 }
                 else
                 {
@@ -242,6 +262,12 @@ fch_file_list_add(struct fch_finfo * finfos_l, char * fname)
 }
 /*----------------------------------------------------------------------------*/
 void
+fch_file_list_remove(struct fch_finfo * file)
+{
+    free(file->name);
+}
+/*----------------------------------------------------------------------------*/
+void
 fch_file_list_print(struct fch_finfo * finfo_l)
 {
     struct fch_finfo *  file;
@@ -252,6 +278,19 @@ fch_file_list_print(struct fch_finfo * finfo_l)
     {
         hash = fch_calc_md5(file->name);
         printf("%s  calc_md5 = %s\n", file->name, (hash != NULL) ? hash : "ERR");
+        free(hash);
+    }
+}
+/*----------------------------------------------------------------------------*/
+void
+fch_file_list_print_remove_all(struct fch_finfo * finfo_l)
+{
+    struct fch_finfo *file, *tmp;
+
+    list_for_each_entry_safe(file, tmp, &finfo_l->head_l, head_l)
+    {
+        list_del(&file->head_l);
+        fch_file_list_remove(file);
     }
 }
 /*----------------------------------------------------------------------------*/
@@ -300,5 +339,84 @@ fch_calc_md5(const char * fname)
 
     free(text);
     return hash;
+}
+/*----------------------------------------------------------------------------*/
+int
+fch_file_list_search_check_md5(struct fch_finfo * finfo_l)
+{
+    struct fch_finfo *  file;
+    char *              hash;
+    FILE *              fp;
+    char                state = 0;
+    int                 res;
+    int                 err_cnt = 0;
+    char                rd_md5[32+1];
+    char *              fname_prev;
+
+    list_for_each_entry_reverse(file, &finfo_l->head_l, head_l)
+    {
+        switch(state)
+        {
+            case 0:
+            //----------
+            if(strstr(file->name, ".bin"))
+            {
+                hash = fch_calc_md5(file->name);
+                printf("hash = %s\n", hash);
+                state = 1; //wait md5
+            }
+            else //md5
+            {
+                printf("WARN: md5 wo bin (%s)\n", file->name);
+            }
+            //----------
+            break;
+
+            case 1:
+            //---------
+            if(strstr(file->name, ".md5"))
+            {
+                fp = fopen(file->name, "r");
+                fgets(rd_md5, 33, fp);
+                fch_str_tolower(rd_md5);
+                printf("rd_md5 = %s\n", rd_md5);
+
+                if(!strcmp(rd_md5, hash))
+                {
+                    printf("MD5: %s: OK\n", file->name);
+                }
+                else
+                {
+                    printf("MD5: %s: ERR (need_md5=%s, calc_md5=%s)\n",
+                           file->name, rd_md5, hash);
+                    err_cnt++;
+                }
+
+                free(hash);
+                state = 0; //wait bin
+            }
+            else //.bin again
+            {
+                printf("ERR: no md5 for bin (%s)\n", fname_prev);
+                hash = fch_calc_md5(file->name);
+            }
+            //---------
+            break;
+        }//swithc
+        fname_prev = file->name;
+    }
+    return err_cnt;
+}
+/*----------------------------------------------------------------------------*/
+char *
+fch_str_tolower(char * str)
+{
+    char * str_i = str;
+    while(*str_i != '\0')
+    {
+        *str_i = tolower(*str_i);
+        str_i++;
+    }
+    return str;
 }
 /*----------------------------------------------------------------------------*/
