@@ -21,6 +21,7 @@
 #include <errno.h>
 #include "list.h"
 #include "files_checker.h"
+#include "MD5-hash-Calculator/md5.h"
 
 /*--- Defines ----------------------------------------------------------------*/
 
@@ -54,6 +55,9 @@ fch_scan_dir(struct fch_finfo * finfo_l,
 int
 fch_scan_dir_v2(struct fch_finfo * finfo_l,
                 const char *       dirname);
+
+char *
+fch_calc_md5(const char * fname);
 
 /*=== Functions ==============================================================*/
 
@@ -240,12 +244,61 @@ fch_file_list_add(struct fch_finfo * finfos_l, char * fname)
 void
 fch_file_list_print(struct fch_finfo * finfo_l)
 {
-    struct fch_finfo * file;
+    struct fch_finfo *  file;
+    char *              hash;
 
   //list_for_each_entry(file, &finfo_l->head_l, head_l)
     list_for_each_entry_reverse(file, &finfo_l->head_l, head_l)
     {
-        printf("%s\n", file->name);
+        hash = fch_calc_md5(file->name);
+        printf("%s  calc_md5 = %s\n", file->name, (hash != NULL) ? hash : "ERR");
     }
+}
+/*----------------------------------------------------------------------------*/
+char *
+fch_calc_md5(const char * fname)
+{
+    struct stat         fstat;
+    int                 res;
+    uint8_t *           text;
+    FILE *              fp;
+    char*               hash;
+    Blocks*             blocks;
+
+    res = stat(fname, &fstat);
+    if(res)
+    {
+        printf("errno = %d", errno);
+        return NULL;
+    }
+
+    text = malloc(fstat.st_size + 1); //work if file size not greater 4Gb
+    if(!text)
+    {
+        printf("errno = %d", errno);
+        return NULL;
+    }
+
+    fp = fopen(fname, "r");
+    if(!fp)
+    {
+       printf("ERR (file:%s, line:%d): can't open file!\n",
+              __FUNCTION__, __LINE__);
+       return NULL;
+    }
+
+    if(fread(text, 1, fstat.st_size, fp) != fstat.st_size)
+    {
+        free(text);
+        return NULL;
+    }
+    text[fstat.st_size] = '\0';
+
+    //make blocks of input and call hash function
+    blocks = makeBlocks(text, fstat.st_size);
+    hash = md5(blocks);
+
+    free(text);
+    return hash;
 }
 /*----------------------------------------------------------------------------*/
