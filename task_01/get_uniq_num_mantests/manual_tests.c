@@ -18,6 +18,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -114,7 +115,7 @@ mantest_01_static_arr(void)
                  uniq_val, mantest_arr_info[i].uniq_num);
     }
     printf("----------------------------\n");
-    printf("total arrays = %d, errors = %d\n\n", countof(mantest_arr_info), res);
+    printf("total arrays = %lu, errors = %d\n\n", countof(mantest_arr_info), res);
 
     return res;
 }
@@ -246,13 +247,13 @@ mantest_scan_array_stdin(int32_t**      data)
     *data = malloc(size);
     if(*data == NULL)
     {
-        printf("ERR (func:%s, line:%d): memory allocation, malloc(%d)\n",
+        printf("ERR (func:%s, line:%d): memory allocation, malloc(%lu)\n",
                __FUNCTION__, __LINE__, size);
         return 0;
     }
 
     //---
-    printf("\nPlease enter 2*N+1 = %d numbers in cycle, press <Enter> after each number\n", size);
+    printf("\nPlease enter 2*N+1 = %lu numbers in cycle, press <Enter> after each number\n", size);
     size_t  idx = 0;
     int res;
     int32_t * arr = *data;
@@ -312,7 +313,7 @@ mantest_read_numbers_fr_file(const char *   fname,
         return mantest_err_file_open;
     }
     printf_d("\nfile_name             = %s\n", fname);
-    printf_d(  "file.stats.st_size    = %lld\n", stats.st_size);
+    printf_d(  "file.stats.st_size    = %lu\n", stats.st_size);
 
 #if 0
     //--- reserve space for the maximum possible number of numbers
@@ -354,7 +355,7 @@ mantest_read_numbers_fr_file(const char *   fname,
     *numb_arr_p = malloc(file_numb_count * sizeof(int32_t));
     if(!*numb_arr_p)
     {
-        printf("ERR (func:%s, line:%d): memory allocation, malloc(%d)\n",
+        printf("ERR (func:%s, line:%d): memory allocation, malloc(%lu)\n",
                __FUNCTION__, __LINE__, file_numb_count * sizeof(int32_t));
         fclose(fp);
         return mantest_err_mem_alloc;
@@ -374,7 +375,7 @@ mantest_read_numbers_fr_file(const char *   fname,
         res = fscanf(fp, "%d,", &data[idx]);
         if(res <= 0)
         {
-            printf("ERR (func:%s, line:%d): fscanf, file_pos = %d\n",
+            printf("ERR (func:%s, line:%d): fscanf, file_pos = %ld\n",
                     __FUNCTION__, __LINE__, ftell(fp));
             fclose(fp);
             free(*numb_arr_p);
@@ -476,7 +477,7 @@ mantest_read_files_fr_dir(const char *  dirname,
         printf("ERR (func:%s, line:%d): memory allocation, malloc(%d)\n",
                __FUNCTION__, __LINE__, file_cnt * MANTEST_MAX_FNAME_LEN);
         closedir(dir);
-        return NULL;
+        return mantest_err_mem_alloc;
     }
     char *  str_p = *fnames;
     while (dir_entry = readdir(dir))
