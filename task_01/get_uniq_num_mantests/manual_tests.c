@@ -436,7 +436,11 @@ mantest_read_files_fr_dir(const char *  dirname,
                           char **       fnames)
 {
     DIR *               dir;
+#if defined(_WIN64) ||  defined (_WIN32)
     char *              file_sep = "\\";
+#else
+    char *              file_sep = "/";
+#endif
 
     dir = opendir(dirname);
     if (dir == NULL)
