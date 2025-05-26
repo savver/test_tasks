@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #include <dirent.h>
 #include "manual_tests.h"
 #include "../get_uniq_num/get_uniq_num.h"
@@ -156,10 +157,12 @@ int
 mantest_03_read_fr_file(const char * fname)
 {
     int32_t *   numb_arr;
-    size_t      numb_arr_size;
+    int         numb_arr_size;
 
     numb_arr_size = mantest_read_numbers_fr_file(fname, &numb_arr,
                                                  MANTEST_MAX_NUMBERS_FR_FILE);
+    if(numb_arr_size <= 0)
+        return mantest_err_file_open;
 
     int uniq_val = get_unique_num(numb_arr, numb_arr_size);
     printf_d("get_unique_num():uniq_val = %d\n", uniq_val);
@@ -293,16 +296,21 @@ mantest_read_numbers_fr_file(const char *   fname,
     FILE *      fp;
     int32_t     res;
 
-    //--- file size, file may be greater than 4 Gb
-    struct __stat64 stats;
+    //--- file size
+    //for WIN: if need we can use __stat64 for files more than 4 Gb
+#if defined(_WIN64) ||  defined (_WIN32)
+    struct __stat64 stats;    
     res = __stat64(fname, &stats );
+#else
+    struct stat stats;
+    res = stat(fname, &stats );
+#endif
     if(res < 0)
     {
         printf("ERR (func:%s, line:%d): file isn't exist!\n",
                __FUNCTION__, __LINE__);
         return mantest_err_file_open;
     }
-    uint64_t file_size = stats.st_size;
     printf_d("\nfile_name             = %s\n", fname);
     printf_d(  "file.stats.st_size    = %lld\n", stats.st_size);
 
