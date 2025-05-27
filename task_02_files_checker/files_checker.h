@@ -18,7 +18,7 @@
 
 /*! @brief Print detail debug info during tests
 */
-#define MANTEST_DBG_PRINT_DETAIL            1
+#define MANTEST_DBG_PRINT_DETAIL            0
 
 /*--- Defines ----------------------------------------------------------------*/
 
