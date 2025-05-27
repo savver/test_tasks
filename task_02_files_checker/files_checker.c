@@ -25,6 +25,12 @@
 
 /*--- Defines ----------------------------------------------------------------*/
 
+#if MANTEST_DBG_PRINT_DETAIL
+#define printf_d        printf
+#else
+#define printf_d(...)   { }
+#endif
+
 typedef struct fch_finfo
 {
     struct list_head    head_l;
@@ -107,9 +113,14 @@ fch_check_dir(const char * dirname)
     fch_flist_init(&finfos);
 
     res = fch_scan_dir_v2(&finfos, dirname);
+    if(res)
+    {
+        fch_flist_rm_all(&finfos);
+        return res;
+    }
     fch_flist_print(&finfos);               //debug print
 
-    fch_flist_search_check_md5(&finfos);    //main process
+    res = fch_flist_search_check_md5(&finfos);    //main process
 
     fch_flist_rm_all(&finfos);
 
@@ -128,7 +139,7 @@ fch_scan_dir(struct fch_finfo * finfo_l,
     struct stat         fstat;
     int                 res;
 
-    printf("scan dir_name: '%s'...\n",dirname);
+    printf_d("scan dir_name: '%s'...\n",dirname);
 
     dir = opendir(dirname);
     if (dir == NULL)
@@ -159,7 +170,7 @@ fch_scan_dir(struct fch_finfo * finfo_l,
             {
                 if (!S_ISDIR(fstat.st_mode))
                 {
-                    printf("new file: %s\n", new_fname);
+                    printf_d("new file: %s\n", new_fname);
                     fch_flist_add(finfo_l, new_fname);
                 }
                 else
@@ -203,7 +214,7 @@ fch_scan_dir_v2(struct fch_finfo * finfo_l,
     int                 res;
     struct dirent **    namelist;
 
-    printf("scan dir_name: '%s'...\n",dirname);
+    printf_d("scan dir_name: '%s'...\n",dirname);
 
     fnum = scandir(dirname, &namelist, NULL, alphasort);
     if(fnum < 0)
@@ -237,7 +248,7 @@ fch_scan_dir_v2(struct fch_finfo * finfo_l,
                     if (strstr(namelist[i]->d_name,".bin") ||
                         strstr(namelist[i]->d_name,".md5"))
                     {
-                        printf("new file: %s\n", new_fname);
+                        printf_d("new file: %s\n", new_fname);
                         fch_flist_add(finfo_l, new_fname);
                     }
                 }
@@ -329,7 +340,7 @@ fch_flist_print(struct fch_finfo * finfo_l)
     list_for_each_entry_reverse(file, &finfo_l->head_l, head_l)
     {
         hash = fch_calc_md5(file->name);
-        printf("%s  calc_md5 = %s\n", file->name, (hash != NULL) ? hash : "ERR");
+        printf_d("%s  calc_md5 = %s\n", file->name, (hash != NULL) ? hash : "ERR");
         free(hash);
     }
 }
@@ -486,6 +497,7 @@ fch_flist_search_check_md5(struct fch_finfo * finfo_l)
             else //.bin again
             {
                 printf("ERR: no md5 for bin (%s)\n", fname_prev);
+                err_cnt++;
 
                 free(hash);
                 hash = fch_calc_md5(file->name);
