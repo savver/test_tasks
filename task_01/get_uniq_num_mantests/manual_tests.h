@@ -17,7 +17,7 @@
 /*--- Settings ---------------------------------------------------------------*/
 
 ///! Print detail debug info during tests
-#define MANTEST_DBG_PRINT_DETAIL            1
+#define MANTEST_DBG_PRINT_DETAIL            0
 
 ///! Print numbers from static arrays from this test lib
 #define MANTEST_DBG_PRINT_TEST01_STAT_ARR   1
