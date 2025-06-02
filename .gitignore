@@ -6,6 +6,8 @@ CMakeLists.txt.user.*
 #executable files
 test_runner_uniq_num_tester
 uniq_num_tester
+files_checker
+test_runner_files_checker
 
 #user files
 *.zip
