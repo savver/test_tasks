@@ -6,3 +6,7 @@ CMakeLists.txt.user.*
 #executable files
 test_runner_uniq_num_tester
 uniq_num_tester
+
+#user files
+*.zip
+*.rar
