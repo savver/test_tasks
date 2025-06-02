@@ -1,0 +1,12 @@
+#Qt Creator build sets and temp files
+build*/
+CMakeLists.txt.user
+CMakeLists.txt.user.*
+
+#executable files
+files_checker
+test_runner_files_checker
+
+#user files
+*.zip
+*.rar
